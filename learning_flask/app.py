@@ -17,8 +17,9 @@ movies = [
 ]
 
 @app.route('/')
+@app.route('/hello')
 def hello_world():
-    return 'Hello World!'
+    return '<h1>Hello World!</h1>'
 
 @app.route('/user/<name>')
 def user_page(name):
