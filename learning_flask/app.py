@@ -1,6 +1,9 @@
 from flask import Flask, url_for, render_template
+from flask_sqlalchemy import  SQLAlchemy
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] ='mysql://root:@106.14.220.77:3306/db_demo?charset=utf8'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 
 name = 'Grey Li'
 movies = [
