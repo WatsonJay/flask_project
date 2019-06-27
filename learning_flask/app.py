@@ -1,5 +1,6 @@
-from flask import Flask, url_for, render_template
+from flask import Flask, url_for, render_template, request, redirect
 from flask_sqlalchemy import  SQLAlchemy
+import models
 import pymysql
 
 app = Flask(__name__)
@@ -15,10 +16,10 @@ app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 
 db = SQLAlchemy(app)
 
-name = 'Grey Li'
+name = 'jaywatson'
 movies = [
     {'title': 'My Neighbor Totoro', 'year': '1988'},
-    {'title': 'Dead Poets Society', 'year': '1989'},
+    {'title': 'Dead Poets Soci cccety', 'year': '1989'},
     {'title': 'A Perfect World', 'year': '1993'},
     {'title': 'Leon', 'year': '1994'},
     {'title': 'Mahjong', 'year': '1996'},
@@ -53,6 +54,31 @@ def test_url_for():
 @app.route('/film')
 def index():
     return render_template('test.html', name=name, movies=movies)
+
+@app.route('/movie')
+def show_all():
+   return render_template('movieAdd.html', movies = models.Movie.query.all(), user=name)
+
+@app.route('/movie/add/',methods=['POST','GET'])
+def add():
+    if request.method == 'POST':
+        p_title = request.form.get('title',None)
+        p_year = request.form.get('year',None)
+
+        if not p_title or not p_year:
+            return 'input error'
+
+        newobj = models.Movie(title=p_title, year=p_year)
+        db.session.add(newobj)
+        db.session.commit()
+        Movies = models.Movie.query.all()
+        return redirect(url_for('show_all'))
+    Movies = models.Movie.query.all()
+    return render_template('movieAdd.html',admins=Movies, user=name)
+
+@app.errorhandler(404)  # 传入要处理的错误代码
+def page_not_found(e):  # 接受异常对象作为参数
+    return render_template('404.html', user=name), 404  # 返回模板和状态码
 
 if __name__ == '__main__':
     app.run(debug=True)
