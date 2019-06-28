@@ -17,6 +17,7 @@ footer {
 /* 头像 */
 .avatar {
     width: 40px;
+    height: 40px;
 }
 
 /* 电影列表 */
@@ -46,3 +47,4 @@ footer {
     margin: 0 auto;
     height: 100px;
 }
+
