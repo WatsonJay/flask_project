@@ -1,4 +1,4 @@
-from flask import Flask, url_for, render_template, request, redirect
+from flask import Flask, url_for, render_template, request, redirect, flash
 from flask_sqlalchemy import  SQLAlchemy
 import pymysql
 
@@ -6,7 +6,7 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] ='mysql+pymysql://root:@127.0.0.1:3306/test?charset=utf8'
 
 #配置flask配置对象中键：SQLALCHEMY_COMMIT_TEARDOWN,设置为True,应用会自动在每次请求结束后提交数据库中变动
-
+app.config['SECRET_KEY'] = 'dev'
 app.config['SQLALCHEMY_COMMIT_TEARDOWN'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
@@ -65,15 +65,45 @@ def add():
         p_year = request.form.get('year',None)
 
         if not p_title or not p_year:
-            return 'input error'
+            flash('input error.')
+            return redirect(url_for('show_all'))
 
         newobj = models.Movie(title=p_title, year=p_year)
         db.session.add(newobj)
         db.session.commit()
         Movies = models.Movie.query.all()
+        flash('新增成功.')
         return redirect(url_for('show_all'))
     Movies = models.Movie.query.all()
     return render_template('movieAdd.html',admins=Movies, user=name)
+
+@app.route('/movie/edit/<int:movie_id>', methods=['GET', 'POST'])
+def edit(movie_id):
+    movie = models.Movie.query.get_or_404(movie_id)
+
+    if request.method == 'POST':  # 处理编辑表单的提交请求
+        title = request.form['title']
+        year = request.form['year']
+
+        if not title or not year or len(year) > 4 or len(title) > 60:
+            flash('Invalid input.')
+            return redirect(url_for('edit', movie_id=movie_id))  # 重定向回对应的编辑页面
+
+        movie.title = title  # 更新标题
+        movie.year = year  # 更新年份
+        db.session.commit()  # 提交数据库会话
+        flash('Item updated.')
+        return redirect(url_for('show_all'))  # 重定向回主页
+
+    return render_template('edit.html', movie=movie)  # 传入被编辑的电影记录
+
+@app.route('/movie/delete/<int:movie_id>', methods=['POST'])
+def delete(movie_id):
+    movie = models.Movie.query.get_or_404(movie_id)
+    db.session.delete(movie)  # 删除对应的记录
+    db.session.commit()  # 提交数据库会话
+    flash('Item deleted.')
+    return redirect(url_for('show_all'))  # 重定向回主页
 
 @app.errorhandler(404)  # 传入要处理的错误代码
 def page_not_found(e):  # 接受异常对象作为参数
